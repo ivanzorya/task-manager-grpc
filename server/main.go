@@ -51,7 +51,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	tasks.RegisterTaskServiceServer(grpcServer, &TaskService{})
-	grpclog.SetLogger(log.New(os.Stdout, "exampleserver: ", log.LstdFlags))
+	grpclog.SetLogger(log.New(os.Stdout, "Server: ", log.LstdFlags))
 
 	wrappedServer := grpcweb.WrapServer(grpcServer)
 

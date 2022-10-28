@@ -30,6 +30,8 @@ func CreateTask(task *tasks.CreateTaskRequest) bool {
 	_, insertErr := taskCollection.InsertOne(ctx, dbTask)
 	if insertErr != nil {
 		fmt.Println(insertErr)
+		defer cancel()
+
 		return false
 	}
 	defer cancel()
@@ -47,11 +49,17 @@ func GetTasks() []*tasks.Task {
 
 	if err != nil {
 		fmt.Println(err)
+
+		defer cancel()
+
 		return nil
 	}
 	
 	if err = cursor.All(ctx, &tasksDB); err != nil {
 		fmt.Println(err)
+
+		defer cancel()
+
 		return nil
 	}
 
@@ -91,6 +99,9 @@ func UpdateTask(task *tasks.UpdateTaskRequest) bool {
 
 	if err != nil {
 		fmt.Println(err)
+
+		defer cancel()
+
 		return false
 	}
 
@@ -110,6 +121,9 @@ func DeleteTask(task *tasks.DeleteTaskRequest) bool {
 	
 	if err != nil {
 		fmt.Println(err)
+		
+		defer cancel()
+
 		return false
 	}
 
