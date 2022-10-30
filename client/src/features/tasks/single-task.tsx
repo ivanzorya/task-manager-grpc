@@ -11,15 +11,19 @@ const TaskRow: React.FC<{
     const [done, setDone] = useState(taskData.done)
 
     return (
-        <Card>
+        <Card className="stndrt-class">
             <Row>
-                <Col>Subject:{ taskData !== undefined && taskData.subject}</Col>
-                <Col><InputGroup.Checkbox checked={done} onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setDone(event.target.checked);
-                    changeSingleTask({id: taskData.id, subject:taskData.subject, done: event.target.checked});
-                    }}
-                /></Col>
-                <Col><Button onClick={() => deleteSingleTask(taskData.id)}>delete task</Button></Col>
+                <Col sm={8}>Subject: { taskData !== undefined && taskData.subject}</Col>
+                <Col sm={2}>
+                    <InputGroup.Checkbox checked={done} onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setDone(event.target.checked);
+                        changeSingleTask({id: taskData.id, subject:taskData.subject, done: event.target.checked});
+                        }}
+                    />
+                </Col>
+                <Col sm={2}>
+                    <Button className="stndrt-class" onClick={() => deleteSingleTask(taskData.id)}>delete task</Button>
+                </Col>
             </Row>
         </Card>
     )
