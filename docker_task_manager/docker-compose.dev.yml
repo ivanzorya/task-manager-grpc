@@ -1,0 +1,32 @@
+version: "3"
+
+volumes:
+  mongodb_data_container:
+
+services:
+  server:
+    restart: always
+    build:
+      context: ../server
+      dockerfile: ../docker_task_manager/Dockerfile.server
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mongodb_container
+  
+  mongodb_container:
+    image: mongo:latest
+    env_file:
+      - ../server/.env
+    ports:
+      - 27018:27017
+    volumes:
+      - mongodb_data_container:/data/db
+  
+  client:
+    restart: always
+    build:
+      context: ../client
+      dockerfile: ../docker_task_manager/Dockerfile.client
+    ports:
+      - "80:80"

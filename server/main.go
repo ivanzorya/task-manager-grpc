@@ -47,7 +47,8 @@ func cors(h http.Handler) http.Handler {
 func main() {
 	flag.Parse()
 
-	port := 9090
+	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
 
 	grpcServer := grpc.NewServer()
 	tasks.RegisterTaskServiceServer(grpcServer, &TaskService{})
@@ -56,11 +57,11 @@ func main() {
 	wrappedServer := grpcweb.WrapServer(grpcServer)
 
 	httpServer := http.Server{
-		Addr:    fmt.Sprintf("localhost:%d", port),
+		Addr:    fmt.Sprintf("%s:%s", host, port),
 		Handler: cors(wrappedServer),
 	}
 
-	grpclog.Printf("Starting server. http port: %d", port)
+	grpclog.Printf("Starting server. http port: %s", port)
 
 	if err := httpServer.ListenAndServe(); err != nil {
 		grpclog.Fatalf("failed starting http server: %v", err)

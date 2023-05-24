@@ -1,0 +1,16 @@
+FROM node:19-alpine AS builder
+RUN apk update && apk add yarn python3 g++ make && rm -rf /var/cache/apk/*
+WORKDIR /app
+
+COPY package.json yarn.lock /app/
+RUN yarn --pure-lockfile --ignore-engines
+
+COPY . /app/
+
+RUN yarn run build
+
+FROM node:19-slim
+RUN yarn global add serve
+WORKDIR /app
+COPY --from=builder /app/build .
+CMD ["serve", "-p", "80", "-s", "."]
