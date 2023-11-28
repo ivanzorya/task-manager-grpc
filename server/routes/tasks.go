@@ -5,26 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson"
-	tasks "server/tasks"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	models "server/models"
+	tasks "server/tasks"
 )
-
-var validate = validator.New()
 
 var taskCollection *mongo.Collection = OpenCollection(Client, "tasks")
 
-func CreateTask(task *tasks.CreateTaskRequest) bool {
+func CreateTask(task *tasks.CreateTaskRequest, claims *models.UserClaims) bool {
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
 	dbTask := models.DBTask{
-		ID: primitive.NewObjectID(),
-		Subject: &task.Task.Subject,
-		Done: &task.Task.Done, 
+		ID:        primitive.NewObjectID(),
+		Subject:   &task.Task.Subject,
+		Done:      &task.Task.Done,
+		UserEmail: &claims.Email,
 	}
 
 	_, insertErr := taskCollection.InsertOne(ctx, dbTask)
@@ -39,13 +37,15 @@ func CreateTask(task *tasks.CreateTaskRequest) bool {
 	return true
 }
 
-func GetTasks() []*tasks.Task {
+func GetTasks(claims *models.UserClaims) []*tasks.Task {
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	
+
 	var tasksDB []bson.M
 
-	cursor, err := taskCollection.Find(ctx, bson.M{})
+	filter := bson.D{{Key: "useremail", Value: claims.Email}}
+
+	cursor, err := taskCollection.Find(ctx, filter)
 
 	if err != nil {
 		fmt.Println(err)
@@ -54,7 +54,7 @@ func GetTasks() []*tasks.Task {
 
 		return nil
 	}
-	
+
 	if err = cursor.All(ctx, &tasksDB); err != nil {
 		fmt.Println(err)
 
@@ -76,12 +76,12 @@ func GetTasks() []*tasks.Task {
 		respTmp.Subject = *dbTmp.Subject
 		respTmp.Done = *dbTmp.Done
 		responseTasks = append(responseTasks, respTmp)
-		
+
 	}
 	return responseTasks
 }
 
-func UpdateTask(task *tasks.UpdateTaskRequest) bool {
+func UpdateTask(task *tasks.UpdateTaskRequest, claims *models.UserClaims) bool {
 
 	taskID := task.Task.Id
 	docID, _ := primitive.ObjectIDFromHex(taskID)
@@ -92,8 +92,9 @@ func UpdateTask(task *tasks.UpdateTaskRequest) bool {
 		ctx,
 		bson.M{"_id": docID},
 		bson.M{
-			"subject":  &task.Task.Subject,
-			"done": &task.Task.Done,
+			"subject":   &task.Task.Subject,
+			"done":      &task.Task.Done,
+			"useremail": &claims.Email,
 		},
 	)
 
@@ -111,17 +112,17 @@ func UpdateTask(task *tasks.UpdateTaskRequest) bool {
 }
 
 func DeleteTask(task *tasks.DeleteTaskRequest) bool {
-	
+
 	taskID := task.Id
 	docID, _ := primitive.ObjectIDFromHex(taskID)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
 	_, err := taskCollection.DeleteOne(ctx, bson.M{"_id": docID})
-	
+
 	if err != nil {
 		fmt.Println(err)
-		
+
 		defer cancel()
 
 		return false

@@ -8,6 +8,7 @@ export interface Task {
   id: string;
   subject: string;
   done: boolean;
+  userEmail: string;
 }
 
 export interface TasksRequest {
@@ -34,7 +35,7 @@ export interface SuccessResponse {
 }
 
 function createBaseTask(): Task {
-  return { id: "", subject: "", done: false };
+  return { id: "", subject: "", done: false, userEmail: "" };
 }
 
 export const Task = {
@@ -48,31 +49,58 @@ export const Task = {
     if (message.done === true) {
       writer.uint32(24).bool(message.done);
     }
+    if (message.userEmail !== "") {
+      writer.uint32(34).string(message.userEmail);
+    }
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Task {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTask();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 10) {
+            break;
+          }
+
           message.id = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag !== 18) {
+            break;
+          }
+
           message.subject = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag !== 24) {
+            break;
+          }
+
           message.done = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.userEmail = reader.string();
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<Task>): Task {
+    return Task.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<Task>): Task {
@@ -80,6 +108,7 @@ export const Task = {
     message.id = object.id ?? "";
     message.subject = object.subject ?? "";
     message.done = object.done ?? false;
+    message.userEmail = object.userEmail ?? "";
     return message;
   },
 };
@@ -94,18 +123,23 @@ export const TasksRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TasksRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTasksRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        default:
-          reader.skipType(tag & 7);
-          break;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<TasksRequest>): TasksRequest {
+    return TasksRequest.fromPartial(base ?? {});
   },
 
   fromPartial(_: DeepPartial<TasksRequest>): TasksRequest {
@@ -127,21 +161,30 @@ export const TasksResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TasksResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTasksResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 10) {
+            break;
+          }
+
           message.tasks.push(Task.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<TasksResponse>): TasksResponse {
+    return TasksResponse.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<TasksResponse>): TasksResponse {
@@ -164,21 +207,30 @@ export const CreateTaskRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateTaskRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateTaskRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 10) {
+            break;
+          }
+
           message.task = Task.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<CreateTaskRequest>): CreateTaskRequest {
+    return CreateTaskRequest.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<CreateTaskRequest>): CreateTaskRequest {
@@ -201,21 +253,30 @@ export const UpdateTaskRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTaskRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateTaskRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 10) {
+            break;
+          }
+
           message.task = Task.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<UpdateTaskRequest>): UpdateTaskRequest {
+    return UpdateTaskRequest.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<UpdateTaskRequest>): UpdateTaskRequest {
@@ -238,21 +299,30 @@ export const DeleteTaskRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): DeleteTaskRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDeleteTaskRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 10) {
+            break;
+          }
+
           message.id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<DeleteTaskRequest>): DeleteTaskRequest {
+    return DeleteTaskRequest.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<DeleteTaskRequest>): DeleteTaskRequest {
@@ -275,21 +345,30 @@ export const SuccessResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SuccessResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSuccessResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag !== 8) {
+            break;
+          }
+
           message.success = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
+  },
+
+  create(base?: DeepPartial<SuccessResponse>): SuccessResponse {
+    return SuccessResponse.fromPartial(base ?? {});
   },
 
   fromPartial(object: DeepPartial<SuccessResponse>): SuccessResponse {
@@ -339,7 +418,7 @@ export const TaskServiceDefinition = {
   },
 } as const;
 
-export interface TaskServiceServiceImplementation<CallContextExt = {}> {
+export interface TaskServiceImplementation<CallContextExt = {}> {
   queryGetTasks(request: TasksRequest, context: CallContext & CallContextExt): Promise<DeepPartial<TasksResponse>>;
   queryCreateTask(
     request: CreateTaskRequest,

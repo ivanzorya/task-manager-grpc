@@ -1,0 +1,35 @@
+syntax = "proto3";
+package main;
+option go_package="/";
+
+
+message User {
+    string id = 1;
+    string email = 2;
+    string password = 3;
+}
+
+message UsersRequest {
+}
+
+message UsersResponse {
+    repeated User users = 1;
+}
+
+message CreateUserRequest {
+    User user = 1;
+}
+
+message DeleteUserRequest {
+    string id = 1;
+}
+
+message SuccessUserServiceResponse {
+    bool success = 1;
+}
+
+service UserService {
+    rpc QueryGetUsers(UsersRequest) returns (UsersResponse) {}
+    rpc QueryCreateUser(CreateUserRequest) returns (SuccessUserServiceResponse) {}
+    rpc QueryDeleteUser(DeleteUserRequest) returns (SuccessUserServiceResponse) {}
+}

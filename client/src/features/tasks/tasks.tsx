@@ -1,62 +1,97 @@
 import React, { useState, useEffect } from "react";
+import { Metadata } from "nice-grpc-web";
 import { Button, Form, Container, Modal, InputGroup } from "react-bootstrap"
 import TaskRow from "./single-task"
-import { client } from "../../client/client"
+import { clientTasks } from "../../client/client"
 import { Task } from "../../app/proto/tasks";
+import { accessToken, emailLogged } from "../../App";
+import { useRecoilState } from "recoil";
 
+type TasksProps = {
+    setAlertMessage: (val: string) => void,
+    setAlertVariant: (val: string) => void,
+    setIsAlertVisible: (val: boolean) => void,
+}
 
-export const Tasks = () => {
+export const Tasks = ({ setAlertMessage, setAlertVariant, setIsAlertVisible }: TasksProps) => {
+    const [token] = useRecoilState(accessToken);
+    const [emailRecoiled] = useRecoilState(emailLogged);
+
     const [tasks, setTasks] = useState<Task[]>([]);
-    useEffect(() => {
-        getAllTasks()
-    }, [])
-    
-    const [addNewTask, setAddNewTask] = useState(false)
-    const [newTask, setNewTask] = useState({"subject": "", "done": false})
+
+    const [addNewTask, setAddNewTask] = useState(false);
+    const [newTask, setNewTask] = useState({ "subject": "", "done": false });
 
     const changeSingleTask = (updatedTask: Task) => {
         const task = {
-            task: updatedTask
+            task: updatedTask,
         }
-        client.queryUpdateTask(task).then(() => getAllTasks())
+        clientTasks.queryUpdateTask(
+            task,
+            {
+                metadata: Metadata({ 'Authorization': token }),
+            },
+        ).then(() => getAllTasks()).catch((e) => {
+            setAlertMessage("Task updating fail");
+            setAlertVariant("danger");
+            setIsAlertVisible(true);
+            getAllTasks();
+        })
     }
 
     const addSingleTask = () => {
-        setAddNewTask(false)
+        setAddNewTask(false);
         const task = {
             task: {
                 id: "fake",
                 subject: newTask.subject,
                 done: newTask.done,
+                userEmail: emailRecoiled,
             }
         }
-        client.queryCreateTask(task).then(() => getAllTasks())
+        clientTasks.queryCreateTask(
+            task,
+            {
+                metadata: Metadata({ 'Authorization': token })
+            },
+        ).then(() => getAllTasks()).catch((e) => {
+            setAlertMessage("Task creation fail");
+            setAlertVariant("danger");
+            setIsAlertVisible(true);
+        })
     }
 
-    const getAllTasks = () => client.queryGetTasks({}).then(res => setTasks(res.tasks));
+    const getAllTasks = () => clientTasks.queryGetTasks({}, {
+        metadata: Metadata({ 'Authorization': token }),
+    }).then(res => setTasks(res.tasks));
 
     const deleteSingleTask = (id: string) => {
-        client.queryDeleteTask({id: id}).then(() => getAllTasks())
+        clientTasks.queryDeleteTask({ id: id }).then(() => getAllTasks());
     }
 
     useEffect(() => {
-        getAllTasks();
-    }, [])
- 
-    return (
+        if (token !== "") {
+            getAllTasks();
+        }
+        setTasks([]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token])
+
+
+    return (token !== "" ?
         <div>
-            
+
             <Container >
                 <Button className="stndrt-class" onClick={() => setAddNewTask(true)}>Add new task</Button>
             </Container>
 
             <Container>
                 {tasks != null && tasks.map((task) => (
-                    <TaskRow key={task.id} taskData={task} 
-                    deleteSingleTask={deleteSingleTask} changeSingleTask={changeSingleTask}/>
+                    <TaskRow key={task.id} taskData={task}
+                        deleteSingleTask={deleteSingleTask} changeSingleTask={changeSingleTask} />
                 ))}
             </Container>
-            
+
             <Modal show={addNewTask} onHide={() => setAddNewTask(false)} centered>
                 <Modal.Header closeButton>
                     <Modal.Title className="stndrt-class">Add Task</Modal.Title>
@@ -65,12 +100,12 @@ export const Tasks = () => {
                 <Modal.Body>
                     <Form.Group >
                         <Form.Control className="stndrt-class" onChange={(event) => {
-                            setNewTask({...newTask, subject: event.target.value})
-                            }} />
+                            setNewTask({ ...newTask, subject: event.target.value })
+                        }} />
                         <InputGroup.Checkbox type="checkbox" onChange={
                             (event: React.ChangeEvent<HTMLInputElement>) => {
-                                setNewTask({...newTask, done: event.target.checked})
-                                }}
+                                setNewTask({ ...newTask, done: event.target.checked })
+                            }}
                         />
                     </Form.Group>
                     <Button className="stndrt-class" onClick={() => addSingleTask()}>Add</Button>
@@ -78,6 +113,8 @@ export const Tasks = () => {
                 </Modal.Body>
             </Modal>
         </div>
+        :
+        null
     );
 }
 

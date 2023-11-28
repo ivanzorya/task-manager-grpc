@@ -5,7 +5,8 @@ import (
 )
 
 type DBTask struct {
-	ID         	primitive.ObjectID 	`bson:"_id"`
-	Subject    	*string            	`json:"subject,omitempty"`
-	Done	   	*bool           	`json:"done,omitempty"`
+	ID        primitive.ObjectID `bson:"_id"`
+	Subject   *string            `json:"subject,omitempty"`
+	Done      *bool              `json:"done,omitempty"`
+	UserEmail *string            `json:"userEmail,omitempty"`
 }
